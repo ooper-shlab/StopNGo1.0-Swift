@@ -17,9 +17,7 @@
 		72F509381399DD88003DFA1F /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F509371399DD88003DFA1F /* AssetsLibrary.framework */; };
 		72F5093A1399DD9C003DFA1F /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F509391399DD9C003DFA1F /* CoreMedia.framework */; };
 		D7B71F951A90CB90001DA7D5 /* StopNGoAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7B71F941A90CB90001DA7D5 /* StopNGoAppDelegate.swift */; };
-		D7B71F971A90CDA4001DA7D5 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = D7B71F961A90CDA4001DA7D5 /* README.md */; };
 		D7CC1A3F1A8E5E02007B6655 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D7CC1A3E1A8E5E02007B6655 /* Default-568h@2x.png */; };
-		D7CC1A411A8E5E4A007B6655 /* ReadMe.txt in Resources */ = {isa = PBXBuildFile; fileRef = D7CC1A401A8E5E4A007B6655 /* ReadMe.txt */; };
 		D7CC1A441A8EC003007B6655 /* StopNGoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7CC1A431A8EC003007B6655 /* StopNGoViewController.swift */; };
 /* End PBXBuildFile section */
 
@@ -139,7 +137,7 @@
 		72F508C11399CC2A003DFA1F /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0630;
 			};
 			buildConfigurationList = 72F508C41399CC2A003DFA1F /* Build configuration list for PBXProject "StopNGo" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -167,7 +165,6 @@
 				72F508E21399CC2A003DFA1F /* MainStoryboard_iPhone.storyboard in Resources */,
 				72F508E51399CC2A003DFA1F /* MainStoryboard_iPad.storyboard in Resources */,
 				D7CC1A3F1A8E5E02007B6655 /* Default-568h@2x.png in Resources */,
-				D7CC1A411A8E5E4A007B6655 /* ReadMe.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -178,7 +175,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D7B71F971A90CDA4001DA7D5 /* README.md in Sources */,
 				D7B71F951A90CB90001DA7D5 /* StopNGoAppDelegate.swift in Sources */,
 				D7CC1A441A8EC003007B6655 /* StopNGoViewController.swift in Sources */,
 			);
@@ -232,6 +228,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -271,6 +268,7 @@
 				COPY_PHASE_STRIP = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
