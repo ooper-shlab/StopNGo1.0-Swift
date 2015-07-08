@@ -73,7 +73,6 @@ class StopNGoViewController: UIViewController {
     @IBOutlet var takePictureButton: UIBarButtonItem!
     
     private func setupAVCapture() -> Bool {
-        var error: NSError? = nil
         // 5 fps - taking 5 pictures will equal 1 second of video
         frameDuration = CMTimeMakeWithSeconds(1.0/5.0, 90000)
         
@@ -82,8 +81,10 @@ class StopNGoViewController: UIViewController {
         
         // Select a video device, make an input
         let backCamera = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
-        let input = AVCaptureDeviceInput(device: backCamera, error: &error)
-        if error != nil {
+        let input: AVCaptureDeviceInput!
+        do {
+            input = try AVCaptureDeviceInput(device: backCamera)
+        } catch _ {
             return false
         }
         if session.canAddInput(input) {
@@ -119,9 +120,10 @@ class StopNGoViewController: UIViewController {
     
     private func setupAssetWriterForURL(fileURL: NSURL, formatDescription: CMFormatDescription) -> Bool {
         // allocate the writer object with our output file URL
-        var error: NSError? = nil
-        assetWriter = AVAssetWriter(URL: fileURL, fileType: AVFileTypeQuickTimeMovie, error: &error)
-        if error != nil {
+        do {
+            assetWriter = try AVAssetWriter(URL: fileURL, fileType: AVFileTypeQuickTimeMovie)
+        } catch _ {
+            assetWriter = nil
             return false
         }
         
@@ -129,8 +131,8 @@ class StopNGoViewController: UIViewController {
         // passing nil for outputSettings instructs the input to pass through appended samples, doing no processing before they are written
         assetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: nil)
         assetWriterInput!.expectsMediaDataInRealTime = true
-        if assetWriter!.canAddInput(assetWriterInput) {
-            assetWriter!.addInput(assetWriterInput)
+        if assetWriter!.canAddInput(assetWriterInput!) {
+            assetWriter!.addInput(assetWriterInput!)
         }
         
         // specify the prefered transform for the output file
@@ -173,10 +175,10 @@ class StopNGoViewController: UIViewController {
             
             // set up the AVAssetWriter using the format description from the first sample buffer captured
             if self.assetWriter == nil {
-                self.outputURL = NSURL(fileURLWithPath: "\(NSTemporaryDirectory())/\(mach_absolute_time()).mov")!
+                self.outputURL = NSURL(fileURLWithPath: "\(NSTemporaryDirectory())/\(mach_absolute_time()).mov")
                 //NSLog("Writing movie to \"%@\"", outputURL)
                 let formatDescription = CMSampleBufferGetFormatDescription(imageDataSampleBuffer)
-                if !self.setupAssetWriterForURL(self.outputURL!, formatDescription: formatDescription) {
+                if !self.setupAssetWriterForURL(self.outputURL!, formatDescription: formatDescription!) {
                     return
                 }
             }
@@ -202,7 +204,7 @@ class StopNGoViewController: UIViewController {
                     self.nextPTS = CMTimeAdd(self.frameDuration, self.nextPTS)
                 } else {
                     let error = self.assetWriter!.error
-                    NSLog("failed to append sbuf: %@", error)
+                    NSLog("failed to append sbuf: %@", error!)
                 }
             }
             
@@ -219,9 +221,9 @@ class StopNGoViewController: UIViewController {
             if error != nil {
                 NSLog("assets library failed (%@)", error!)
             } else {
-                var error: NSError? = nil
-                NSFileManager.defaultManager().removeItemAtURL(self.outputURL!, error: &error)
-                if error != nil {
+                do {
+                    try NSFileManager.defaultManager().removeItemAtURL(self.outputURL!)
+                } catch _ {
                     NSLog("Couldn't remove temporary movie file \"%@\"", self.outputURL!)
                 }
             }
