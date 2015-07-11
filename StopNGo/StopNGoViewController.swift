@@ -166,7 +166,7 @@ class StopNGoViewController: UIViewController {
         return true
     }
     
-    @IBAction func takePicture(AnyObject) {
+    @IBAction func takePicture(_: AnyObject) {
         // initiate a still image capture, return immediately
         // the completionHandler is called when a sample buffer has been captured
         let stillImageConnection = stillImageOutput?.connectionWithMediaType(AVMediaTypeVideo)
@@ -187,20 +187,19 @@ class StopNGoViewController: UIViewController {
             var timingInfo = kCMTimingInfoInvalid
             timingInfo.duration = self.frameDuration
             timingInfo.presentationTimeStamp = self.nextPTS
-            var umSbufWithNewTiming: Unmanaged<CMSampleBuffer>? = nil
+            var sbufWithNewTiming: CMSampleBuffer? = nil
             let err = CMSampleBufferCreateCopyWithNewTiming(kCFAllocatorDefault,
                 imageDataSampleBuffer,
                 1, // numSampleTimingEntries
                 &timingInfo,
-                &umSbufWithNewTiming)
+                &sbufWithNewTiming)
             if err != 0 {
                 return
             }
-            let sbufWithNewTiming: CMSampleBuffer = umSbufWithNewTiming!.takeRetainedValue()
             
             // append the sample buffer if we can and increment presnetation time
             if self.assetWriterInput?.readyForMoreMediaData ?? false {
-                if self.assetWriterInput!.appendSampleBuffer(sbufWithNewTiming) {
+                if self.assetWriterInput!.appendSampleBuffer(sbufWithNewTiming!) {
                     self.nextPTS = CMTimeAdd(self.frameDuration, self.nextPTS)
                 } else {
                     let error = self.assetWriter!.error
