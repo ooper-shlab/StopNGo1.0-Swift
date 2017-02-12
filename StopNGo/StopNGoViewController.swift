@@ -65,13 +65,14 @@ class StopNGoViewController: UIViewController {
     var assetWriter: AVAssetWriter?
     var assetWriterInput: AVAssetWriterInput?
     var stillImageOutput: AVCaptureStillImageOutput?
-    var outputURL: NSURL?
+    var outputURL: URL?
     
     @IBOutlet var previewView: UIView!
     @IBOutlet var fpsSlider: UISlider!
     @IBOutlet var startFinishButton: UIBarButtonItem!
     @IBOutlet var takePictureButton: UIBarButtonItem!
     
+    @discardableResult
     private func setupAVCapture() -> Bool {
         // 5 fps - taking 5 pictures will equal 1 second of video
         frameDuration = CMTimeMakeWithSeconds(1.0/5.0, 90000)
@@ -80,7 +81,7 @@ class StopNGoViewController: UIViewController {
         session.sessionPreset = AVCaptureSessionPresetHigh
         
         // Select a video device, make an input
-        let backCamera = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
+        let backCamera = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo)
         let input: AVCaptureDeviceInput!
         do {
             input = try AVCaptureDeviceInput(device: backCamera)
@@ -99,13 +100,13 @@ class StopNGoViewController: UIViewController {
         
         // Make a preview layer so we can see the visual output of an AVCaptureSession
         let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-        previewLayer.videoGravity = AVLayerVideoGravityResizeAspect
-        previewLayer.frame = previewView.bounds
+        previewLayer?.videoGravity = AVLayerVideoGravityResizeAspect
+        previewLayer?.frame = previewView.bounds
         
         // add the preview layer to the hierarchy
         let rootLayer = previewView.layer
-        rootLayer.backgroundColor = UIColor.blackColor().CGColor
-        rootLayer.addSublayer(previewLayer)
+        rootLayer.backgroundColor = UIColor.black.cgColor
+        rootLayer.addSublayer(previewLayer!)
         
         // start the capture session running, note this is an async operation
         // status is provided via notifications such as AVCaptureSessionDidStartRunningNotification/AVCaptureSessionDidStopRunningNotification
@@ -114,14 +115,14 @@ class StopNGoViewController: UIViewController {
         return true
     }
     
-    private final func DegreesToRadians(degrees: CGFloat) -> CGFloat {
-        return degrees * CGFloat(M_PI) / 180
+    private final func DegreesToRadians(_ degrees: CGFloat) -> CGFloat {
+        return degrees * CGFloat.pi / 180
     }
     
-    private func setupAssetWriterForURL(fileURL: NSURL, formatDescription: CMFormatDescription) -> Bool {
+    private func setupAssetWriterForURL(_ fileURL: URL, formatDescription: CMFormatDescription) -> Bool {
         // allocate the writer object with our output file URL
         do {
-            assetWriter = try AVAssetWriter(URL: fileURL, fileType: AVFileTypeQuickTimeMovie)
+            assetWriter = try AVAssetWriter(outputURL: fileURL, fileType: AVFileTypeQuickTimeMovie)
         } catch _ {
             assetWriter = nil
             return false
@@ -131,37 +132,37 @@ class StopNGoViewController: UIViewController {
         // passing nil for outputSettings instructs the input to pass through appended samples, doing no processing before they are written
         assetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: nil)
         assetWriterInput!.expectsMediaDataInRealTime = true
-        if assetWriter!.canAddInput(assetWriterInput!) {
-            assetWriter!.addInput(assetWriterInput!)
+        if assetWriter!.canAdd(assetWriterInput!) {
+            assetWriter!.add(assetWriterInput!)
         }
         
         // specify the prefered transform for the output file
         var rotationDegrees: CGFloat
-        switch UIDevice.currentDevice().orientation {
-        case .PortraitUpsideDown:
+        switch UIDevice.current.orientation {
+        case .portraitUpsideDown:
             rotationDegrees = -90.0
-        case .LandscapeLeft: // no rotation
+        case .landscapeLeft: // no rotation
             rotationDegrees = 0.0
-        case .LandscapeRight:
+        case .landscapeRight:
             rotationDegrees = 180.0
-        case .Portrait:
+        case .portrait:
             fallthrough
-        case .Unknown:
+        case .unknown:
             fallthrough
-        case .FaceUp:
+        case .faceUp:
             fallthrough
-        case .FaceDown:
+        case .faceDown:
             fallthrough
         default:
             rotationDegrees = 90.0
         }
         let rotationRadians = DegreesToRadians(rotationDegrees)
-        assetWriterInput!.transform = CGAffineTransformMakeRotation(rotationRadians)
+        assetWriterInput!.transform = CGAffineTransform(rotationAngle: rotationRadians)
         
         // initiates a sample-writing at time 0
         nextPTS = kCMTimeZero
         assetWriter!.startWriting()
-        assetWriter!.startSessionAtSourceTime(nextPTS)
+        assetWriter!.startSession(atSourceTime: nextPTS)
         
         return true
     }
@@ -169,15 +170,15 @@ class StopNGoViewController: UIViewController {
     @IBAction func takePicture(_: AnyObject) {
         // initiate a still image capture, return immediately
         // the completionHandler is called when a sample buffer has been captured
-        let stillImageConnection = stillImageOutput?.connectionWithMediaType(AVMediaTypeVideo)
-        stillImageOutput?.captureStillImageAsynchronouslyFromConnection(stillImageConnection) {
+        let stillImageConnection = stillImageOutput?.connection(withMediaType: AVMediaTypeVideo)
+        stillImageOutput?.captureStillImageAsynchronously(from: stillImageConnection) {
             imageDataSampleBuffer, error in
             
             // set up the AVAssetWriter using the format description from the first sample buffer captured
             if self.assetWriter == nil {
-                self.outputURL = NSURL(fileURLWithPath: "\(NSTemporaryDirectory())/\(mach_absolute_time()).mov")
+                self.outputURL = URL(fileURLWithPath: "\(NSTemporaryDirectory())/\(mach_absolute_time()).mov")
                 //NSLog("Writing movie to \"%@\"", outputURL)
-                let formatDescription = CMSampleBufferGetFormatDescription(imageDataSampleBuffer)
+                let formatDescription = CMSampleBufferGetFormatDescription(imageDataSampleBuffer!)
                 if !self.setupAssetWriterForURL(self.outputURL!, formatDescription: formatDescription!) {
                     return
                 }
@@ -189,7 +190,7 @@ class StopNGoViewController: UIViewController {
             timingInfo.presentationTimeStamp = self.nextPTS
             var sbufWithNewTiming: CMSampleBuffer? = nil
             let err = CMSampleBufferCreateCopyWithNewTiming(kCFAllocatorDefault,
-                imageDataSampleBuffer,
+                imageDataSampleBuffer!,
                 1, // numSampleTimingEntries
                 &timingInfo,
                 &sbufWithNewTiming)
@@ -198,12 +199,12 @@ class StopNGoViewController: UIViewController {
             }
             
             // append the sample buffer if we can and increment presnetation time
-            if self.assetWriterInput?.readyForMoreMediaData ?? false {
-                if self.assetWriterInput!.appendSampleBuffer(sbufWithNewTiming!) {
+            if self.assetWriterInput?.isReadyForMoreMediaData ?? false {
+                if self.assetWriterInput!.append(sbufWithNewTiming!) {
                     self.nextPTS = CMTimeAdd(self.frameDuration, self.nextPTS)
                 } else {
                     let error = self.assetWriter!.error
-                    NSLog("failed to append sbuf: %@", error!)
+                    NSLog("failed to append sbuf: \(error!)")
                 }
             }
             
@@ -215,36 +216,36 @@ class StopNGoViewController: UIViewController {
         // save the movie to the camera roll
         let library = ALAssetsLibrary()
         //NSLog("writing \"%@\" to photos album", outputURL!)
-        library.writeVideoAtPathToSavedPhotosAlbum(outputURL) {
+        library.writeVideoAtPath(toSavedPhotosAlbum: outputURL) {
             assetURL, error in
             if error != nil {
-                NSLog("assets library failed (%@)", error!)
+                NSLog("assets library failed (\(error!))")
             } else {
                 do {
-                    try NSFileManager.defaultManager().removeItemAtURL(self.outputURL!)
+                    try FileManager.default.removeItem(at: self.outputURL!)
                 } catch _ {
-                    NSLog("Couldn't remove temporary movie file \"%@\"", self.outputURL!)
+                    NSLog("Couldn't remove temporary movie file \"\(self.outputURL!)\"")
                 }
             }
             self.outputURL = nil
         }
     }
     
-    @IBAction func startStop(sender: UIBarButtonItem) {
+    @IBAction func startStop(_ sender: UIBarButtonItem) {
         if started {
             if assetWriter != nil {
                 assetWriterInput!.markAsFinished()
-                assetWriter!.finishWritingWithCompletionHandler {
+                assetWriter!.finishWriting {
                     self.assetWriterInput = nil
                     self.saveMovieToCameraRoll()
                     self.assetWriter = nil
                 }
             }
             sender.title = "Start"
-            takePictureButton.enabled = false
+            takePictureButton.isEnabled = false
         } else {
             sender.title = "Finish"
-            takePictureButton.enabled = true
+            takePictureButton.isEnabled = true
             
         }
         started = !started
@@ -263,7 +264,7 @@ class StopNGoViewController: UIViewController {
         // Do any additional setup after loading the view, typically from a nib.
     }
     
-    override func shouldAutorotate() -> Bool {
+    override var shouldAutorotate : Bool {
         return false
     }
     
