@@ -141,7 +141,6 @@
 				LastUpgradeCheck = 0820;
 				TargetAttributes = {
 					72F508C91399CC2A003DFA1F = {
-						DevelopmentTeam = D9ACCH3T4Y;
 						LastSwiftMigration = 0820;
 					};
 				};
@@ -303,7 +302,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
-				DEVELOPMENT_TEAM = D9ACCH3T4Y;
+				DEVELOPMENT_TEAM = "";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "StopNGo/StopNGo-Prefix.pch";
 				INFOPLIST_FILE = "StopNGo/StopNGo-Info.plist";
@@ -321,7 +320,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
-				DEVELOPMENT_TEAM = D9ACCH3T4Y;
+				DEVELOPMENT_TEAM = "";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "StopNGo/StopNGo-Prefix.pch";
 				INFOPLIST_FILE = "StopNGo/StopNGo-Info.plist";
