@@ -78,13 +78,13 @@ class StopNGoViewController: UIViewController {
         frameDuration = CMTimeMakeWithSeconds(1.0/5.0, 90000)
         
         let session = AVCaptureSession()
-        session.sessionPreset = AVCaptureSessionPresetHigh
+        session.sessionPreset = .high
         
         // Select a video device, make an input
-        let backCamera = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo)
+        let backCamera = AVCaptureDevice.default(for: .video)
         let input: AVCaptureDeviceInput!
         do {
-            input = try AVCaptureDeviceInput(device: backCamera)
+            input = try AVCaptureDeviceInput(device: backCamera!)
         } catch _ {
             return false
         }
@@ -94,19 +94,19 @@ class StopNGoViewController: UIViewController {
         
         // Make a still image output
         stillImageOutput = AVCaptureStillImageOutput()
-        if session.canAddOutput(stillImageOutput) {
-            session.addOutput(stillImageOutput)
+        if session.canAddOutput(stillImageOutput!) {
+            session.addOutput(stillImageOutput!)
         }
         
         // Make a preview layer so we can see the visual output of an AVCaptureSession
         let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-        previewLayer?.videoGravity = AVLayerVideoGravityResizeAspect
-        previewLayer?.frame = previewView.bounds
+        previewLayer.videoGravity = .resizeAspect
+        previewLayer.frame = previewView.bounds
         
         // add the preview layer to the hierarchy
         let rootLayer = previewView.layer
         rootLayer.backgroundColor = UIColor.black.cgColor
-        rootLayer.addSublayer(previewLayer!)
+        rootLayer.addSublayer(previewLayer)
         
         // start the capture session running, note this is an async operation
         // status is provided via notifications such as AVCaptureSessionDidStartRunningNotification/AVCaptureSessionDidStopRunningNotification
@@ -116,13 +116,13 @@ class StopNGoViewController: UIViewController {
     }
     
     private final func DegreesToRadians(_ degrees: CGFloat) -> CGFloat {
-        return degrees * CGFloat.pi / 180
+        return degrees * .pi / 180
     }
     
     private func setupAssetWriterForURL(_ fileURL: URL, formatDescription: CMFormatDescription) -> Bool {
         // allocate the writer object with our output file URL
         do {
-            assetWriter = try AVAssetWriter(outputURL: fileURL, fileType: AVFileTypeQuickTimeMovie)
+            assetWriter = try AVAssetWriter(outputURL: fileURL, fileType: .mov)
         } catch _ {
             assetWriter = nil
             return false
@@ -130,7 +130,7 @@ class StopNGoViewController: UIViewController {
         
         // initialized a new input for video to receive sample buffers for writing
         // passing nil for outputSettings instructs the input to pass through appended samples, doing no processing before they are written
-        assetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: nil)
+        assetWriterInput = AVAssetWriterInput(mediaType: .video, outputSettings: nil)
         assetWriterInput!.expectsMediaDataInRealTime = true
         if assetWriter!.canAdd(assetWriterInput!) {
             assetWriter!.add(assetWriterInput!)
@@ -170,8 +170,8 @@ class StopNGoViewController: UIViewController {
     @IBAction func takePicture(_: AnyObject) {
         // initiate a still image capture, return immediately
         // the completionHandler is called when a sample buffer has been captured
-        let stillImageConnection = stillImageOutput?.connection(withMediaType: AVMediaTypeVideo)
-        stillImageOutput?.captureStillImageAsynchronously(from: stillImageConnection) {
+        let stillImageConnection = stillImageOutput?.connection(with: .video)
+        stillImageOutput?.captureStillImageAsynchronously(from: stillImageConnection!) {
             imageDataSampleBuffer, error in
             
             // set up the AVAssetWriter using the format description from the first sample buffer captured
